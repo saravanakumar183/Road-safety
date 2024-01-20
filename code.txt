@@ -1,0 +1,73 @@
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
+#include <LiquidCrystal_I2C.h> 
+LiquidCrystal_I2C lcd(0x27, 20, 4); 
+int v=9;
+char a;
+int x=13;
+double latitude, longitude;
+static const int RXPin = 4, TXPin = 3;
+TinyGPSPlus gps;
+SoftwareSerial ss(RXPin, TXPin);
+SoftwareSerial ss1(5,6);
+void setup(){
+  lcd.init(); 
+  pinMode(v,INPUT);
+  Serial.begin(9600);
+  ss1.begin(9600); //GPS
+  ss.begin(9600);
+  pinMode(x,OUTPUT);
+}
+void loop(){
+  digitalWrite(x,LOW);
+lcd.backlight(); 
+ int val;
+  val=digitalRead(v);
+  gps.encode(ss1.read());
+
+  if(val==1)
+  { lcd.print("alert");
+  delay(1000);
+  lcd.clear();
+    lcd.print("sending message....");
+    delay(1000);
+    lcd.clear();
+    ss.print("AT\r");
+    while(ss.available()>0) {  
+      a = ss.read();   
+     // Serial.print(a);
+      }
+    delay(1000);
+    ss.println("AT+CMGF=1\r");
+       while(ss.available()>0) {  
+      a = ss.read();   
+     // Serial.print(a); 
+     }
+    delay(100);
+    lcd.print("To 9500201641");
+    delay(1000);
+    lcd.clear();
+    ss.println("AT+CMGS=\"9500201641\"\r");
+    delay(100);
+    ss.println("NAME : SARAN S\n VEHICLE NO : TN28AZ0561\nAGE : 20\nVehicle Type : 4 wheeler");
+    latitude = gps.location.lat();
+    longitude = gps.location.lng();
+    String link = "http://www.google.com/maps/place/" + String(latitude) + "," + String(longitude);
+    ss.print(link);
+    ss.println((char)26);
+       while(ss.available()>0) {  
+      a = ss.read();   
+     // Serial.print(a);
+      }
+    delay(100);
+    lcd.print("Message sent");
+    delay(1000);
+    lcd.clear();
+  }
+  else
+  { lcd.print("No Vibration");
+    //Serial.println("NO VIBRATION");
+    delay(1000);
+    lcd.clear();
+  }
+}
